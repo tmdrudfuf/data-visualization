@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>World Hover Summary</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Chart.js (for detail charts) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <!-- Hover summary panel -->
+  <div class="panel">
+    <div class="title">Country Summary</div>
+    <div id="summaryBox" class="row muted">Hover over a country 👀</div>
+    <div class="hint">Click a country for details</div>
+  </div>
+
+  <!-- Detail modal (click) -->
+  <div id="detailModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Country details">
+    <div class="modal-backdrop" data-close="1"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <div id="detailTitle" class="modal-title">Country</div>
+          <div id="detailSub" class="modal-sub">ISO3: ---</div>
+        </div>
+        <button id="closeModalBtn" class="modal-close" aria-label="Close">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="grid">
+          <div class="section">
+            <div class="section-title">Key numbers</div>
+            <div id="detailNumbers" class="kv-list"></div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Chart</div>
+            <canvas id="detailChart" height="160"></canvas>
+            <div id="chartNote" class="muted small" style="margin-top:8px;"></div>
+          </div>
+        </div>
+
+        <div class="section" style="margin-top:14px;">
+          <div class="section-title">Notes</div>
+          <div id="detailNotes" class="row muted">No notes yet.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Your data first, then app logic -->
+  <script defer src="./data.js"></script>
+  <script defer src="./app.js"></script>
+</body>
+</html>
