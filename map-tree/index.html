@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>World Hover Summary</title>
+  <title>World Map by Major</title>
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Chart.js (for detail charts) -->
+  <!-- Chart.js -->
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <link rel="stylesheet" href="./styles.css" />
@@ -18,7 +18,14 @@
 <body>
   <div id="map"></div>
 
-  <!-- Hover summary panel -->
+  <!-- Top-left navbar -->
+  <div class="nav">
+    <div class="nav-title">Major / Category</div>
+    <select id="metricSelect" class="nav-select"></select>
+    <div id="metricHint" class="nav-hint"></div>
+  </div>
+
+  <!-- Hover summary panel (top-right) -->
   <div class="panel">
     <div class="title">Country Summary</div>
     <div id="summaryBox" class="row muted">Hover over a country 👀</div>
@@ -59,7 +66,7 @@
     </div>
   </div>
 
-  <!-- Your data first, then app logic -->
+  <!-- Data first, then app logic -->
   <script defer src="./data.js"></script>
   <script defer src="./app.js"></script>
 </body>
