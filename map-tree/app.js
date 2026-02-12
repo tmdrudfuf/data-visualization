@@ -20,15 +20,30 @@
   const countryData = window.COUNTRY_DATA || {};
   const countryNotes = window.COUNTRY_NOTES || {};
 
-  // Current selected category
   let currentKey = categories[0]?.key || "total";
   let currentLabel = categories[0]?.label || "TOTAL";
 
   // ===== Map =====
   const map = L.map("map", { worldCopyJump: true }).setView([20, 0], 2);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "&copy; OpenStreetMap contributors"
-  }).addTo(map);
+
+  // ✅ Basemap: no labels
+  const baseNoLabels = L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
+    {
+      subdomains: "abcd",
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+    }
+  ).addTo(map);
+
+  // ✅ Labels overlay (best-effort English/roman labels)
+  const labelsOverlay = L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png",
+    {
+      subdomains: "abcd",
+      attribution: "&copy; CARTO",
+      opacity: 0.9
+    }
+  ).addTo(map);
 
   // ===== Helpers =====
   function escapeHtml(s) {
@@ -39,12 +54,20 @@
 
   function getCountryName(feature) {
     const p = feature.properties || {};
-    return (p.name || p.ADMIN || p.NAME || p.name_long || p.formal_en || p.brk_name || "Unknown");
+    return (
+      p.ADMIN ||
+      p.NAME_EN ||
+      p.FORMAL_EN ||
+      p.NAME_LONG ||
+      p.NAME ||
+      p.name ||
+      "Unknown"
+    );
   }
 
   function getIso3(feature) {
     const p = feature.properties || {};
-    return (feature.id || p.ISO_A3 || p.iso_a3 || p.ISO3 || p.adm0_a3 || "N/A");
+    return (p.ISO_A3 || p.iso_a3 || p.ADM0_A3 || p.adm0_a3 || feature.id || "N/A");
   }
 
   function getCountFor(iso3, catKey) {
@@ -71,8 +94,8 @@
   }
 
   // ===== Color bins (Yellow -> Red) + Legend =====
-  let breaks = []; // bin cutoffs
-  const binColors = ["#fef08a", "#facc15", "#fb923c", "#f97316", "#ef4444", "#b91c1c"]; // 6 steps
+  let breaks = [];
+  const binColors = ["#fef08a", "#facc15", "#fb923c", "#f97316", "#ef4444", "#b91c1c"];
 
   function computeBreaks(catKey, steps = 6) {
     const values = Object.keys(countryData)
@@ -109,7 +132,6 @@
 
   function fmt(n) { return Number(n).toLocaleString(); }
 
-  // Leaflet legend control
   const legend = L.control({ position: "bottomright" });
   legend.onAdd = function () {
     const div = L.DomUtil.create("div", "leaflet-control leaflet-bar");
@@ -160,7 +182,6 @@
       `;
     }).join("");
 
-    // Add "No data" row
     itemsEl.innerHTML += `
       <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
         <span style="width:14px; height:14px; border-radius:4px; background:#9ca3af; display:inline-block; border:1px solid rgba(0,0,0,.15);"></span>
@@ -223,7 +244,6 @@
     });
   }
 
-  // ===== Rendering: hover + click =====
   function renderSummary(feature) {
     const iso3 = getIso3(feature);
     const name = getCountryName(feature);
@@ -268,16 +288,15 @@
     openModal();
   }
 
-  // ===== Style (✅ border + fill use the SAME color) =====
   function styleFeature(feature) {
     const iso3 = getIso3(feature);
     const v = getCountFor(iso3, currentKey);
     const c = colorForValue(v);
 
     return {
-      fillColor: c,      // ✅ same as border
-      fillOpacity: 0.22, // ✅ light fill
-      color: c,          // border
+      fillColor: c,
+      fillOpacity: 0.22,
+      color: c,
       weight: 2.2,
       opacity: 0.98
     };
@@ -290,7 +309,7 @@
     layer.on({
       mouseover: (e) => {
         const t = e.target;
-        t.setStyle({ weight: 4.0, fillOpacity: 0.32 }); // ✅ slightly stronger on hover
+        t.setStyle({ weight: 4.0, fillOpacity: 0.32 });
         if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) t.bringToFront();
         renderSummary(feature);
       },
@@ -302,7 +321,6 @@
     });
   }
 
-  // ===== Update map when category changes =====
   function applyCategory(catKey) {
     const found = categories.find(c => c.key === catKey) || categories[0];
     currentKey = found.key;
@@ -321,7 +339,6 @@
     applyCategory(metricSelect.value);
   });
 
-  // ===== Modal close =====
   closeBtn.addEventListener("click", closeModal);
   modal.addEventListener("click", (e) => {
     const t = e.target;
@@ -331,22 +348,16 @@
     if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
   });
 
-  // ===== Load GeoJSON =====
   const WORLD_GEOJSON_URL =
-    "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json";
+    "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson";
 
   fetch(WORLD_GEOJSON_URL)
     .then(r => r.json())
     .then(world => {
       initSelect();
-
-      // legend
       legend.addTo(map);
-
-      // initial category
       applyCategory(currentKey);
 
-      // geo layer
       geoLayer = L.geoJSON(world, { style: styleFeature, onEachFeature }).addTo(map);
       clearSummary();
     })
